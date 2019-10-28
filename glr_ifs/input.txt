@@ -1,0 +1,20 @@
+x = 100
+
+y = 50
+
+if (x < 100)
+{
+	y = y * x
+}
+else
+{
+	print x, hex
+}
+
+if (y == 50)
+	if (x == 100)
+		print y
+	else
+		print x, dec
+
+print y , bin

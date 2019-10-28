@@ -1,0 +1,921 @@
+Terminals unused in grammar
+
+   TK_ERROR
+
+
+State 53 conflicts: 1 shift/reduce
+
+
+Grammar
+
+    0 $accept: input_src $end
+
+    1 input_src: stmts
+
+    2 stmts: stmts eols stmt
+    3      | stmt
+
+    4 eols: eols TK_EOL
+    5     | TK_EOL
+
+    6 optional_eols: eols
+    7              | %empty
+
+    8 stmt: asign
+    9     | print
+   10     | if_stmt
+
+   11 if_stmt: KW_IF TK_LEFT_PAR logic_expression TK_RIGHT_PAR eols optional_block_stmt eols KW_ELSE eols optional_block_stmt
+   12        | KW_IF TK_LEFT_PAR logic_expression TK_RIGHT_PAR eols optional_block_stmt
+
+   13 optional_block_stmt: TK_LEFT_CURLY_BRAKET optional_eols stmts optional_eols TK_RIGHT_CURLY_BRAKET
+   14                    | stmt
+
+   15 logic_expression: expr logic_operator expr
+
+   16 logic_operator: OP_EQUAL
+   17               | OP_DISTINCT
+   18               | OP_GRATER_EQUAL_THAN
+   19               | OP_LESS_EQUAL_THAN
+   20               | OP_GRATER_THAN
+   21               | OP_LESS_THAN
+
+   22 asign: KW_VARINDEX OP_ASIGN expr
+
+   23 print: KW_PRINT expr PT_COMMA print_format
+   24      | KW_PRINT expr
+
+   25 print_format: KW_HEX
+   26             | KW_BIN
+   27             | KW_DEC
+
+   28 expr: expr OP_ADD term
+   29     | expr OP_SUB term
+   30     | term
+
+   31 term: term OP_MUL factor
+   32     | term OP_DIV factor
+   33     | factor
+
+   34 factor: TK_NUMBER
+   35       | KW_VARINDEX
+   36       | TK_LEFT_PAR expr TK_RIGHT_PAR
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+error (256)
+OP_ADD (258) 28
+OP_SUB (259) 29
+OP_MUL (260) 31
+OP_DIV (261) 32
+OP_ASIGN (262) 22
+TK_RIGHT_PAR (263) 11 12 36
+TK_LEFT_PAR (264) 11 12 36
+TK_RIGHT_CURLY_BRAKET (265) 13
+TK_LEFT_CURLY_BRAKET (266) 13
+OP_EQUAL (267) 16
+OP_DISTINCT (268) 17
+OP_GRATER_EQUAL_THAN (269) 18
+OP_LESS_EQUAL_THAN (270) 19
+OP_GRATER_THAN (271) 20
+OP_LESS_THAN (272) 21
+KW_IF (273) 11 12
+KW_ELSE (274) 11
+KW_PRINT (275) 23 24
+KW_VARINDEX (276) 22 35
+TK_NUMBER (277) 34
+PT_COMMA (278) 23
+KW_HEX (279) 25
+KW_DEC (280) 27
+KW_BIN (281) 26
+TK_EOL (282) 4 5
+TK_ERROR (283)
+
+
+Nonterminals, with rules where they appear
+
+$accept (29)
+    on left: 0
+input_src (30)
+    on left: 1, on right: 0
+stmts (31)
+    on left: 2 3, on right: 1 2 13
+eols (32)
+    on left: 4 5, on right: 2 4 6 11 12
+optional_eols (33)
+    on left: 6 7, on right: 13
+stmt (34)
+    on left: 8 9 10, on right: 2 3 14
+if_stmt (35)
+    on left: 11 12, on right: 10
+optional_block_stmt (36)
+    on left: 13 14, on right: 11 12
+logic_expression (37)
+    on left: 15, on right: 11 12
+logic_operator (38)
+    on left: 16 17 18 19 20 21, on right: 15
+asign (39)
+    on left: 22, on right: 8
+print (40)
+    on left: 23 24, on right: 9
+print_format (41)
+    on left: 25 26 27, on right: 23
+expr (42)
+    on left: 28 29 30, on right: 15 22 23 24 28 29 36
+term (43)
+    on left: 31 32 33, on right: 28 29 30 31 32
+factor (44)
+    on left: 34 35 36, on right: 31 32 33
+
+
+State 0
+
+    0 $accept: . input_src $end
+    1 input_src: . stmts
+    2 stmts: . stmts eols stmt
+    3      | . stmt
+    8 stmt: . asign
+    9     | . print
+   10     | . if_stmt
+   11 if_stmt: . KW_IF TK_LEFT_PAR logic_expression TK_RIGHT_PAR eols optional_block_stmt eols KW_ELSE eols optional_block_stmt
+   12        | . KW_IF TK_LEFT_PAR logic_expression TK_RIGHT_PAR eols optional_block_stmt
+   22 asign: . KW_VARINDEX OP_ASIGN expr
+   23 print: . KW_PRINT expr PT_COMMA print_format
+   24      | . KW_PRINT expr
+
+    KW_IF        shift, and go to state 1
+    KW_PRINT     shift, and go to state 2
+    KW_VARINDEX  shift, and go to state 3
+
+    input_src  go to state 4
+    stmts      go to state 5
+    stmt       go to state 6
+    if_stmt    go to state 7
+    asign      go to state 8
+    print      go to state 9
+
+
+State 1
+
+   11 if_stmt: KW_IF . TK_LEFT_PAR logic_expression TK_RIGHT_PAR eols optional_block_stmt eols KW_ELSE eols optional_block_stmt
+   12        | KW_IF . TK_LEFT_PAR logic_expression TK_RIGHT_PAR eols optional_block_stmt
+
+    TK_LEFT_PAR  shift, and go to state 10
+
+
+State 2
+
+   23 print: KW_PRINT . expr PT_COMMA print_format
+   24      | KW_PRINT . expr
+   28 expr: . expr OP_ADD term
+   29     | . expr OP_SUB term
+   30     | . term
+   31 term: . term OP_MUL factor
+   32     | . term OP_DIV factor
+   33     | . factor
+   34 factor: . TK_NUMBER
+   35       | . KW_VARINDEX
+   36       | . TK_LEFT_PAR expr TK_RIGHT_PAR
+
+    TK_LEFT_PAR  shift, and go to state 11
+    KW_VARINDEX  shift, and go to state 12
+    TK_NUMBER    shift, and go to state 13
+
+    expr    go to state 14
+    term    go to state 15
+    factor  go to state 16
+
+
+State 3
+
+   22 asign: KW_VARINDEX . OP_ASIGN expr
+
+    OP_ASIGN  shift, and go to state 17
+
+
+State 4
+
+    0 $accept: input_src . $end
+
+    $end  shift, and go to state 18
+
+
+State 5
+
+    1 input_src: stmts .  [$end]
+    2 stmts: stmts . eols stmt
+    4 eols: . eols TK_EOL
+    5     | . TK_EOL
+
+    TK_EOL  shift, and go to state 19
+
+    $default  reduce using rule 1 (input_src)
+
+    eols  go to state 20
+
+
+State 6
+
+    3 stmts: stmt .
+
+    $default  reduce using rule 3 (stmts)
+
+
+State 7
+
+   10 stmt: if_stmt .
+
+    $default  reduce using rule 10 (stmt)
+
+
+State 8
+
+    8 stmt: asign .
+
+    $default  reduce using rule 8 (stmt)
+
+
+State 9
+
+    9 stmt: print .
+
+    $default  reduce using rule 9 (stmt)
+
+
+State 10
+
+   11 if_stmt: KW_IF TK_LEFT_PAR . logic_expression TK_RIGHT_PAR eols optional_block_stmt eols KW_ELSE eols optional_block_stmt
+   12        | KW_IF TK_LEFT_PAR . logic_expression TK_RIGHT_PAR eols optional_block_stmt
+   15 logic_expression: . expr logic_operator expr
+   28 expr: . expr OP_ADD term
+   29     | . expr OP_SUB term
+   30     | . term
+   31 term: . term OP_MUL factor
+   32     | . term OP_DIV factor
+   33     | . factor
+   34 factor: . TK_NUMBER
+   35       | . KW_VARINDEX
+   36       | . TK_LEFT_PAR expr TK_RIGHT_PAR
+
+    TK_LEFT_PAR  shift, and go to state 11
+    KW_VARINDEX  shift, and go to state 12
+    TK_NUMBER    shift, and go to state 13
+
+    logic_expression  go to state 21
+    expr              go to state 22
+    term              go to state 15
+    factor            go to state 16
+
+
+State 11
+
+   28 expr: . expr OP_ADD term
+   29     | . expr OP_SUB term
+   30     | . term
+   31 term: . term OP_MUL factor
+   32     | . term OP_DIV factor
+   33     | . factor
+   34 factor: . TK_NUMBER
+   35       | . KW_VARINDEX
+   36       | . TK_LEFT_PAR expr TK_RIGHT_PAR
+   36       | TK_LEFT_PAR . expr TK_RIGHT_PAR
+
+    TK_LEFT_PAR  shift, and go to state 11
+    KW_VARINDEX  shift, and go to state 12
+    TK_NUMBER    shift, and go to state 13
+
+    expr    go to state 23
+    term    go to state 15
+    factor  go to state 16
+
+
+State 12
+
+   35 factor: KW_VARINDEX .
+
+    $default  reduce using rule 35 (factor)
+
+
+State 13
+
+   34 factor: TK_NUMBER .
+
+    $default  reduce using rule 34 (factor)
+
+
+State 14
+
+   23 print: KW_PRINT expr . PT_COMMA print_format
+   24      | KW_PRINT expr .  [$end, TK_RIGHT_CURLY_BRAKET, TK_EOL]
+   28 expr: expr . OP_ADD term
+   29     | expr . OP_SUB term
+
+    OP_ADD    shift, and go to state 24
+    OP_SUB    shift, and go to state 25
+    PT_COMMA  shift, and go to state 26
+
+    $default  reduce using rule 24 (print)
+
+
+State 15
+
+   30 expr: term .  [$end, OP_ADD, OP_SUB, TK_RIGHT_PAR, TK_RIGHT_CURLY_BRAKET, OP_EQUAL, OP_DISTINCT, OP_GRATER_EQUAL_THAN, OP_LESS_EQUAL_THAN, OP_GRATER_THAN, OP_LESS_THAN, PT_COMMA, TK_EOL]
+   31 term: term . OP_MUL factor
+   32     | term . OP_DIV factor
+
+    OP_MUL  shift, and go to state 27
+    OP_DIV  shift, and go to state 28
+
+    $default  reduce using rule 30 (expr)
+
+
+State 16
+
+   33 term: factor .
+
+    $default  reduce using rule 33 (term)
+
+
+State 17
+
+   22 asign: KW_VARINDEX OP_ASIGN . expr
+   28 expr: . expr OP_ADD term
+   29     | . expr OP_SUB term
+   30     | . term
+   31 term: . term OP_MUL factor
+   32     | . term OP_DIV factor
+   33     | . factor
+   34 factor: . TK_NUMBER
+   35       | . KW_VARINDEX
+   36       | . TK_LEFT_PAR expr TK_RIGHT_PAR
+
+    TK_LEFT_PAR  shift, and go to state 11
+    KW_VARINDEX  shift, and go to state 12
+    TK_NUMBER    shift, and go to state 13
+
+    expr    go to state 29
+    term    go to state 15
+    factor  go to state 16
+
+
+State 18
+
+    0 $accept: input_src $end .
+
+    $default  accept
+
+
+State 19
+
+    5 eols: TK_EOL .
+
+    $default  reduce using rule 5 (eols)
+
+
+State 20
+
+    2 stmts: stmts eols . stmt
+    4 eols: eols . TK_EOL
+    8 stmt: . asign
+    9     | . print
+   10     | . if_stmt
+   11 if_stmt: . KW_IF TK_LEFT_PAR logic_expression TK_RIGHT_PAR eols optional_block_stmt eols KW_ELSE eols optional_block_stmt
+   12        | . KW_IF TK_LEFT_PAR logic_expression TK_RIGHT_PAR eols optional_block_stmt
+   22 asign: . KW_VARINDEX OP_ASIGN expr
+   23 print: . KW_PRINT expr PT_COMMA print_format
+   24      | . KW_PRINT expr
+
+    KW_IF        shift, and go to state 1
+    KW_PRINT     shift, and go to state 2
+    KW_VARINDEX  shift, and go to state 3
+    TK_EOL       shift, and go to state 30
+
+    stmt     go to state 31
+    if_stmt  go to state 7
+    asign    go to state 8
+    print    go to state 9
+
+
+State 21
+
+   11 if_stmt: KW_IF TK_LEFT_PAR logic_expression . TK_RIGHT_PAR eols optional_block_stmt eols KW_ELSE eols optional_block_stmt
+   12        | KW_IF TK_LEFT_PAR logic_expression . TK_RIGHT_PAR eols optional_block_stmt
+
+    TK_RIGHT_PAR  shift, and go to state 32
+
+
+State 22
+
+   15 logic_expression: expr . logic_operator expr
+   16 logic_operator: . OP_EQUAL
+   17               | . OP_DISTINCT
+   18               | . OP_GRATER_EQUAL_THAN
+   19               | . OP_LESS_EQUAL_THAN
+   20               | . OP_GRATER_THAN
+   21               | . OP_LESS_THAN
+   28 expr: expr . OP_ADD term
+   29     | expr . OP_SUB term
+
+    OP_ADD                shift, and go to state 24
+    OP_SUB                shift, and go to state 25
+    OP_EQUAL              shift, and go to state 33
+    OP_DISTINCT           shift, and go to state 34
+    OP_GRATER_EQUAL_THAN  shift, and go to state 35
+    OP_LESS_EQUAL_THAN    shift, and go to state 36
+    OP_GRATER_THAN        shift, and go to state 37
+    OP_LESS_THAN          shift, and go to state 38
+
+    logic_operator  go to state 39
+
+
+State 23
+
+   28 expr: expr . OP_ADD term
+   29     | expr . OP_SUB term
+   36 factor: TK_LEFT_PAR expr . TK_RIGHT_PAR
+
+    OP_ADD        shift, and go to state 24
+    OP_SUB        shift, and go to state 25
+    TK_RIGHT_PAR  shift, and go to state 40
+
+
+State 24
+
+   28 expr: expr OP_ADD . term
+   31 term: . term OP_MUL factor
+   32     | . term OP_DIV factor
+   33     | . factor
+   34 factor: . TK_NUMBER
+   35       | . KW_VARINDEX
+   36       | . TK_LEFT_PAR expr TK_RIGHT_PAR
+
+    TK_LEFT_PAR  shift, and go to state 11
+    KW_VARINDEX  shift, and go to state 12
+    TK_NUMBER    shift, and go to state 13
+
+    term    go to state 41
+    factor  go to state 16
+
+
+State 25
+
+   29 expr: expr OP_SUB . term
+   31 term: . term OP_MUL factor
+   32     | . term OP_DIV factor
+   33     | . factor
+   34 factor: . TK_NUMBER
+   35       | . KW_VARINDEX
+   36       | . TK_LEFT_PAR expr TK_RIGHT_PAR
+
+    TK_LEFT_PAR  shift, and go to state 11
+    KW_VARINDEX  shift, and go to state 12
+    TK_NUMBER    shift, and go to state 13
+
+    term    go to state 42
+    factor  go to state 16
+
+
+State 26
+
+   23 print: KW_PRINT expr PT_COMMA . print_format
+   25 print_format: . KW_HEX
+   26             | . KW_BIN
+   27             | . KW_DEC
+
+    KW_HEX  shift, and go to state 43
+    KW_DEC  shift, and go to state 44
+    KW_BIN  shift, and go to state 45
+
+    print_format  go to state 46
+
+
+State 27
+
+   31 term: term OP_MUL . factor
+   34 factor: . TK_NUMBER
+   35       | . KW_VARINDEX
+   36       | . TK_LEFT_PAR expr TK_RIGHT_PAR
+
+    TK_LEFT_PAR  shift, and go to state 11
+    KW_VARINDEX  shift, and go to state 12
+    TK_NUMBER    shift, and go to state 13
+
+    factor  go to state 47
+
+
+State 28
+
+   32 term: term OP_DIV . factor
+   34 factor: . TK_NUMBER
+   35       | . KW_VARINDEX
+   36       | . TK_LEFT_PAR expr TK_RIGHT_PAR
+
+    TK_LEFT_PAR  shift, and go to state 11
+    KW_VARINDEX  shift, and go to state 12
+    TK_NUMBER    shift, and go to state 13
+
+    factor  go to state 48
+
+
+State 29
+
+   22 asign: KW_VARINDEX OP_ASIGN expr .  [$end, TK_RIGHT_CURLY_BRAKET, TK_EOL]
+   28 expr: expr . OP_ADD term
+   29     | expr . OP_SUB term
+
+    OP_ADD  shift, and go to state 24
+    OP_SUB  shift, and go to state 25
+
+    $default  reduce using rule 22 (asign)
+
+
+State 30
+
+    4 eols: eols TK_EOL .
+
+    $default  reduce using rule 4 (eols)
+
+
+State 31
+
+    2 stmts: stmts eols stmt .
+
+    $default  reduce using rule 2 (stmts)
+
+
+State 32
+
+    4 eols: . eols TK_EOL
+    5     | . TK_EOL
+   11 if_stmt: KW_IF TK_LEFT_PAR logic_expression TK_RIGHT_PAR . eols optional_block_stmt eols KW_ELSE eols optional_block_stmt
+   12        | KW_IF TK_LEFT_PAR logic_expression TK_RIGHT_PAR . eols optional_block_stmt
+
+    TK_EOL  shift, and go to state 19
+
+    eols  go to state 49
+
+
+State 33
+
+   16 logic_operator: OP_EQUAL .
+
+    $default  reduce using rule 16 (logic_operator)
+
+
+State 34
+
+   17 logic_operator: OP_DISTINCT .
+
+    $default  reduce using rule 17 (logic_operator)
+
+
+State 35
+
+   18 logic_operator: OP_GRATER_EQUAL_THAN .
+
+    $default  reduce using rule 18 (logic_operator)
+
+
+State 36
+
+   19 logic_operator: OP_LESS_EQUAL_THAN .
+
+    $default  reduce using rule 19 (logic_operator)
+
+
+State 37
+
+   20 logic_operator: OP_GRATER_THAN .
+
+    $default  reduce using rule 20 (logic_operator)
+
+
+State 38
+
+   21 logic_operator: OP_LESS_THAN .
+
+    $default  reduce using rule 21 (logic_operator)
+
+
+State 39
+
+   15 logic_expression: expr logic_operator . expr
+   28 expr: . expr OP_ADD term
+   29     | . expr OP_SUB term
+   30     | . term
+   31 term: . term OP_MUL factor
+   32     | . term OP_DIV factor
+   33     | . factor
+   34 factor: . TK_NUMBER
+   35       | . KW_VARINDEX
+   36       | . TK_LEFT_PAR expr TK_RIGHT_PAR
+
+    TK_LEFT_PAR  shift, and go to state 11
+    KW_VARINDEX  shift, and go to state 12
+    TK_NUMBER    shift, and go to state 13
+
+    expr    go to state 50
+    term    go to state 15
+    factor  go to state 16
+
+
+State 40
+
+   36 factor: TK_LEFT_PAR expr TK_RIGHT_PAR .
+
+    $default  reduce using rule 36 (factor)
+
+
+State 41
+
+   28 expr: expr OP_ADD term .  [$end, OP_ADD, OP_SUB, TK_RIGHT_PAR, TK_RIGHT_CURLY_BRAKET, OP_EQUAL, OP_DISTINCT, OP_GRATER_EQUAL_THAN, OP_LESS_EQUAL_THAN, OP_GRATER_THAN, OP_LESS_THAN, PT_COMMA, TK_EOL]
+   31 term: term . OP_MUL factor
+   32     | term . OP_DIV factor
+
+    OP_MUL  shift, and go to state 27
+    OP_DIV  shift, and go to state 28
+
+    $default  reduce using rule 28 (expr)
+
+
+State 42
+
+   29 expr: expr OP_SUB term .  [$end, OP_ADD, OP_SUB, TK_RIGHT_PAR, TK_RIGHT_CURLY_BRAKET, OP_EQUAL, OP_DISTINCT, OP_GRATER_EQUAL_THAN, OP_LESS_EQUAL_THAN, OP_GRATER_THAN, OP_LESS_THAN, PT_COMMA, TK_EOL]
+   31 term: term . OP_MUL factor
+   32     | term . OP_DIV factor
+
+    OP_MUL  shift, and go to state 27
+    OP_DIV  shift, and go to state 28
+
+    $default  reduce using rule 29 (expr)
+
+
+State 43
+
+   25 print_format: KW_HEX .
+
+    $default  reduce using rule 25 (print_format)
+
+
+State 44
+
+   27 print_format: KW_DEC .
+
+    $default  reduce using rule 27 (print_format)
+
+
+State 45
+
+   26 print_format: KW_BIN .
+
+    $default  reduce using rule 26 (print_format)
+
+
+State 46
+
+   23 print: KW_PRINT expr PT_COMMA print_format .
+
+    $default  reduce using rule 23 (print)
+
+
+State 47
+
+   31 term: term OP_MUL factor .
+
+    $default  reduce using rule 31 (term)
+
+
+State 48
+
+   32 term: term OP_DIV factor .
+
+    $default  reduce using rule 32 (term)
+
+
+State 49
+
+    4 eols: eols . TK_EOL
+    8 stmt: . asign
+    9     | . print
+   10     | . if_stmt
+   11 if_stmt: . KW_IF TK_LEFT_PAR logic_expression TK_RIGHT_PAR eols optional_block_stmt eols KW_ELSE eols optional_block_stmt
+   11        | KW_IF TK_LEFT_PAR logic_expression TK_RIGHT_PAR eols . optional_block_stmt eols KW_ELSE eols optional_block_stmt
+   12        | . KW_IF TK_LEFT_PAR logic_expression TK_RIGHT_PAR eols optional_block_stmt
+   12        | KW_IF TK_LEFT_PAR logic_expression TK_RIGHT_PAR eols . optional_block_stmt
+   13 optional_block_stmt: . TK_LEFT_CURLY_BRAKET optional_eols stmts optional_eols TK_RIGHT_CURLY_BRAKET
+   14                    | . stmt
+   22 asign: . KW_VARINDEX OP_ASIGN expr
+   23 print: . KW_PRINT expr PT_COMMA print_format
+   24      | . KW_PRINT expr
+
+    TK_LEFT_CURLY_BRAKET  shift, and go to state 51
+    KW_IF                 shift, and go to state 1
+    KW_PRINT              shift, and go to state 2
+    KW_VARINDEX           shift, and go to state 3
+    TK_EOL                shift, and go to state 30
+
+    stmt                 go to state 52
+    if_stmt              go to state 7
+    optional_block_stmt  go to state 53
+    asign                go to state 8
+    print                go to state 9
+
+
+State 50
+
+   15 logic_expression: expr logic_operator expr .  [TK_RIGHT_PAR]
+   28 expr: expr . OP_ADD term
+   29     | expr . OP_SUB term
+
+    OP_ADD  shift, and go to state 24
+    OP_SUB  shift, and go to state 25
+
+    $default  reduce using rule 15 (logic_expression)
+
+
+State 51
+
+    4 eols: . eols TK_EOL
+    5     | . TK_EOL
+    6 optional_eols: . eols
+    7              | . %empty  [KW_IF, KW_PRINT, KW_VARINDEX]
+   13 optional_block_stmt: TK_LEFT_CURLY_BRAKET . optional_eols stmts optional_eols TK_RIGHT_CURLY_BRAKET
+
+    TK_EOL  shift, and go to state 19
+
+    $default  reduce using rule 7 (optional_eols)
+
+    eols           go to state 54
+    optional_eols  go to state 55
+
+
+State 52
+
+   14 optional_block_stmt: stmt .
+
+    $default  reduce using rule 14 (optional_block_stmt)
+
+
+State 53
+
+    4 eols: . eols TK_EOL
+    5     | . TK_EOL
+   11 if_stmt: KW_IF TK_LEFT_PAR logic_expression TK_RIGHT_PAR eols optional_block_stmt . eols KW_ELSE eols optional_block_stmt
+   12        | KW_IF TK_LEFT_PAR logic_expression TK_RIGHT_PAR eols optional_block_stmt .  [$end, TK_RIGHT_CURLY_BRAKET, TK_EOL]
+
+    TK_EOL  shift, and go to state 19
+
+    TK_EOL    [reduce using rule 12 (if_stmt)]
+    $default  reduce using rule 12 (if_stmt)
+
+    eols  go to state 56
+
+
+State 54
+
+    4 eols: eols . TK_EOL
+    6 optional_eols: eols .  [KW_IF, KW_PRINT, KW_VARINDEX]
+
+    TK_EOL  shift, and go to state 30
+
+    $default  reduce using rule 6 (optional_eols)
+
+
+State 55
+
+    2 stmts: . stmts eols stmt
+    3      | . stmt
+    8 stmt: . asign
+    9     | . print
+   10     | . if_stmt
+   11 if_stmt: . KW_IF TK_LEFT_PAR logic_expression TK_RIGHT_PAR eols optional_block_stmt eols KW_ELSE eols optional_block_stmt
+   12        | . KW_IF TK_LEFT_PAR logic_expression TK_RIGHT_PAR eols optional_block_stmt
+   13 optional_block_stmt: TK_LEFT_CURLY_BRAKET optional_eols . stmts optional_eols TK_RIGHT_CURLY_BRAKET
+   22 asign: . KW_VARINDEX OP_ASIGN expr
+   23 print: . KW_PRINT expr PT_COMMA print_format
+   24      | . KW_PRINT expr
+
+    KW_IF        shift, and go to state 1
+    KW_PRINT     shift, and go to state 2
+    KW_VARINDEX  shift, and go to state 3
+
+    stmts    go to state 57
+    stmt     go to state 6
+    if_stmt  go to state 7
+    asign    go to state 8
+    print    go to state 9
+
+
+State 56
+
+    4 eols: eols . TK_EOL
+   11 if_stmt: KW_IF TK_LEFT_PAR logic_expression TK_RIGHT_PAR eols optional_block_stmt eols . KW_ELSE eols optional_block_stmt
+
+    KW_ELSE  shift, and go to state 58
+    TK_EOL   shift, and go to state 30
+
+
+State 57
+
+    2 stmts: stmts . eols stmt
+    4 eols: . eols TK_EOL
+    5     | . TK_EOL
+    6 optional_eols: . eols
+    7              | . %empty  [TK_RIGHT_CURLY_BRAKET]
+   13 optional_block_stmt: TK_LEFT_CURLY_BRAKET optional_eols stmts . optional_eols TK_RIGHT_CURLY_BRAKET
+
+    TK_EOL  shift, and go to state 19
+
+    $default  reduce using rule 7 (optional_eols)
+
+    eols           go to state 59
+    optional_eols  go to state 60
+
+
+State 58
+
+    4 eols: . eols TK_EOL
+    5     | . TK_EOL
+   11 if_stmt: KW_IF TK_LEFT_PAR logic_expression TK_RIGHT_PAR eols optional_block_stmt eols KW_ELSE . eols optional_block_stmt
+
+    TK_EOL  shift, and go to state 19
+
+    eols  go to state 61
+
+
+State 59
+
+    2 stmts: stmts eols . stmt
+    4 eols: eols . TK_EOL
+    6 optional_eols: eols .  [TK_RIGHT_CURLY_BRAKET]
+    8 stmt: . asign
+    9     | . print
+   10     | . if_stmt
+   11 if_stmt: . KW_IF TK_LEFT_PAR logic_expression TK_RIGHT_PAR eols optional_block_stmt eols KW_ELSE eols optional_block_stmt
+   12        | . KW_IF TK_LEFT_PAR logic_expression TK_RIGHT_PAR eols optional_block_stmt
+   22 asign: . KW_VARINDEX OP_ASIGN expr
+   23 print: . KW_PRINT expr PT_COMMA print_format
+   24      | . KW_PRINT expr
+
+    KW_IF        shift, and go to state 1
+    KW_PRINT     shift, and go to state 2
+    KW_VARINDEX  shift, and go to state 3
+    TK_EOL       shift, and go to state 30
+
+    $default  reduce using rule 6 (optional_eols)
+
+    stmt     go to state 31
+    if_stmt  go to state 7
+    asign    go to state 8
+    print    go to state 9
+
+
+State 60
+
+   13 optional_block_stmt: TK_LEFT_CURLY_BRAKET optional_eols stmts optional_eols . TK_RIGHT_CURLY_BRAKET
+
+    TK_RIGHT_CURLY_BRAKET  shift, and go to state 62
+
+
+State 61
+
+    4 eols: eols . TK_EOL
+    8 stmt: . asign
+    9     | . print
+   10     | . if_stmt
+   11 if_stmt: . KW_IF TK_LEFT_PAR logic_expression TK_RIGHT_PAR eols optional_block_stmt eols KW_ELSE eols optional_block_stmt
+   11        | KW_IF TK_LEFT_PAR logic_expression TK_RIGHT_PAR eols optional_block_stmt eols KW_ELSE eols . optional_block_stmt
+   12        | . KW_IF TK_LEFT_PAR logic_expression TK_RIGHT_PAR eols optional_block_stmt
+   13 optional_block_stmt: . TK_LEFT_CURLY_BRAKET optional_eols stmts optional_eols TK_RIGHT_CURLY_BRAKET
+   14                    | . stmt
+   22 asign: . KW_VARINDEX OP_ASIGN expr
+   23 print: . KW_PRINT expr PT_COMMA print_format
+   24      | . KW_PRINT expr
+
+    TK_LEFT_CURLY_BRAKET  shift, and go to state 51
+    KW_IF                 shift, and go to state 1
+    KW_PRINT              shift, and go to state 2
+    KW_VARINDEX           shift, and go to state 3
+    TK_EOL                shift, and go to state 30
+
+    stmt                 go to state 52
+    if_stmt              go to state 7
+    optional_block_stmt  go to state 63
+    asign                go to state 8
+    print                go to state 9
+
+
+State 62
+
+   13 optional_block_stmt: TK_LEFT_CURLY_BRAKET optional_eols stmts optional_eols TK_RIGHT_CURLY_BRAKET .
+
+    $default  reduce using rule 13 (optional_block_stmt)
+
+
+State 63
+
+   11 if_stmt: KW_IF TK_LEFT_PAR logic_expression TK_RIGHT_PAR eols optional_block_stmt eols KW_ELSE eols optional_block_stmt .
+
+    $default  reduce using rule 11 (if_stmt)

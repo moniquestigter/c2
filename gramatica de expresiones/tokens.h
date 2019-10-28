@@ -1,0 +1,10 @@
+#define OP_ADD 100
+#define OP_SUB 101
+#define OP_MUL 102
+#define OP_DIV 103
+#define TK_RIGHT_PAR 104
+#define TK_LEFT_PAR 105
+#define TK_NUMBER 106
+#define TK_EOL 107
+#define TK_EOF 108
+#define TK_ERROR 999
