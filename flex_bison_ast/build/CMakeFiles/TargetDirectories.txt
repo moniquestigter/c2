@@ -1,0 +1,3 @@
+/home/jose/Documents/Compiladores2_2019/flex_bison_ast/build/CMakeFiles/rebuild_cache.dir
+/home/jose/Documents/Compiladores2_2019/flex_bison_ast/build/CMakeFiles/expr.dir
+/home/jose/Documents/Compiladores2_2019/flex_bison_ast/build/CMakeFiles/edit_cache.dir
