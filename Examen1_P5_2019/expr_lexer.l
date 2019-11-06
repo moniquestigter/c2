@@ -24,7 +24,7 @@ DIGIT [0-9]
 <comment>"}" BEGIN(INITIAL);
 <comment>.|\n /*nada*/;
 <comment><<EOF>> BEGIN(INITIAL);
-{DIGIT}+(.{DIGIT}+)? {yy.val.emplace<int>(std::strol(yytext,nullptr,10));return makeToken(yytext,yyleng,Token::Num); }
+{DIGIT}+(.{DIGIT}+)? {yyval.emplace<int>(std::strol(yytext,nullptr,10));return makeToken(yytext,yyleng,Token::Num); }
 "-"     {return makeToken(yytext,yyleng,Token::OpSub);}
 "+"     {return makeToken(yytext,yyleng,Token::OpAdd);}
 "*"     {return makeToken(yytext,yyleng,Token::OpDiv);}
@@ -33,12 +33,17 @@ DIGIT [0-9]
 ")"     {return makeToken(yytext,yyleng,Token::ClosePar);}
 ";"     {return makeToken(yytext,yyleng,Token::Semicolon);}
 <<EOF>> { return Token::Eof; }
+\n      {return makeToken(yytext,yyleng,token::Eol);}
 ({letter}|_)({DIGIT}|{letter}|_)+ {yyval.emplace<std::string>(yytext,yyleng);return makeToken(yytext,yyleng, Token::Id);}
 
 %%
 
 ExprLexer::ExprLexer(std::istream &in):in(in) {
     yylex_init_extra(&in,&scanner);
+}
+
+int ExprLexer::getLineNo() {
+    return yyget_lineno(scanner);
 }
 
 ExprLexer::~ExprLexer() {

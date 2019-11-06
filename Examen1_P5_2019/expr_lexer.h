@@ -10,6 +10,8 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include "expr_tokens.h"
+#include "stack.hh"
 enum class Token{
     OpSub,
     OpAdd,
@@ -26,18 +28,23 @@ enum class Token{
 using yyscan_t = void*;
 class ExprLexer {
 public:
-    ExprLexer(std::istream &in);
+    using semantic_type = Expr::Parser::semantic_type;
+    using Token = Expr::Parser::token;
+
+    ExprLexer(std::istringstream &in);
     ~ExprLexer();
 
-    Token makeToken(char * txt, int len, Token tkn){
-        text = std::string(txt,len);
-        return tkn;
+    int makeToken(const char * txt, int len, int tk){
+        std::string tt(txt,len);
+        text = std::move(tt);
+        return tk;
     }
+
     Token getNextToken() { return _getNextToken(scanner); }
     std::string getText() { return text; }
 
 private:
-    Token _getNextToken(yyscan_t yyscanner);
+    Token _getNextToken(semantic_type &yylval,yyscan_t yyscanner);
     std::istream &in;
     std::string text;
     yyscan_t scanner;
