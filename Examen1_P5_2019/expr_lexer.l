@@ -2,6 +2,8 @@
 %option reentrant
 %x comment
 %{
+#include <cstdio>
+#include <sstream>
 #include "expr_tokens.h"
 #include "expr_lexer.h"
 int counter =0;
@@ -24,17 +26,17 @@ DIGIT [0-9]
 <comment>"}" BEGIN(INITIAL);
 <comment>.|\n /*nada*/;
 <comment><<EOF>> BEGIN(INITIAL);
-{DIGIT}+(.{DIGIT}+)? {yyval.emplace<int>(std::strol(yytext,nullptr,10));return makeToken(yytext,yyleng,Token::Num); }
-"-"     {return makeToken(yytext,yyleng,Token::OpSub);}
-"+"     {return makeToken(yytext,yyleng,Token::OpAdd);}
-"*"     {return makeToken(yytext,yyleng,Token::OpDiv);}
-"/"     {return makeToken(yytext,yyleng,Token::OpMult);}
-"("     {return makeToken(yytext,yyleng,Token::OpenPar);}
-")"     {return makeToken(yytext,yyleng,Token::ClosePar);}
-";"     {return makeToken(yytext,yyleng,Token::Semicolon);}
-<<EOF>> { return Token::Eof; }
+DIGIT+ {yyval.emplace<int>(std::strol(yytext,nullptr,10));return makeToken(yytext,yyleng,token::Num); }
+"-"     {return makeToken(yytext,yyleng,token::OpSub);}
+"+"     {return makeToken(yytext,yyleng,token::OpAdd);}
+"*"     {return makeToken(yytext,yyleng,token::OpDiv);}
+"/"     {return makeToken(yytext,yyleng,token::OpMult);}
+"("     {return makeToken(yytext,yyleng,token::OpenPar);}
+")"     {return makeToken(yytext,yyleng,token::ClosePar);}
+";"     {return makeToken(yytext,yyleng,token::Semicolon);}
+<<EOF>> { return token::Eof; }
 \n      {return makeToken(yytext,yyleng,token::Eol);}
-({letter}|_)({DIGIT}|{letter}|_)+ {yyval.emplace<std::string>(yytext,yyleng);return makeToken(yytext,yyleng, Token::Id);}
+({letter}|_)({DIGIT}|{letter}|_)+ {yyval.emplace<std::string>(yytext,yyleng);return makeToken(yytext,yyleng, token::Id);}
 
 %%
 

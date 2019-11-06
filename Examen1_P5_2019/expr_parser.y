@@ -22,9 +22,9 @@
     #include <stdio.h>
     #include <string.h>
     #include <iostream>
-    #define yylex(arg) lexer.getNextToken(arg)
     #include "expr_tokens.h"
     #include "expr_parser.h"
+    #define yylex(arg) lexer.getNextToken(arg)    
     namespace Expr{
         void Parser::error(const std::string& msg){
             std::cerr << msg << "\n";
@@ -37,9 +37,10 @@
     extern int yylineno;
 
 %}
-
-%token Num OpSub OpAdd OpenPar ClosePar Semicolon EOf Id OpDiv OpMult
-
+%type <int> expr term factor
+%token OpSub OpAdd OpenPar ClosePar Semicolon EOf OpDiv OpMult
+%token<int> Num
+%token <std::string> Id
 %%
 
 input: expr_list 

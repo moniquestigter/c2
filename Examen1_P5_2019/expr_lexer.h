@@ -25,11 +25,15 @@ using yyscan_t = void*;
 class ExprLexer {
 public:
     using semantic_type = Expr::Parser::semantic_type;
-    using Token = Expr::Parser::token;
+    using token = Expr::Parser::token;
 
     ExprLexer(std::istringstream &in);
     ~ExprLexer();
-
+    int makeToken(const char * txt, int len, int tk){
+        std::string tt(txt,len);
+        text = std::move(tt);
+        return tk;
+    }  
     int getLineNo();
 
     Token getNextToken(semantic_type *yylval) { return _getNextToken(*yylval,scanner); }
@@ -37,12 +41,7 @@ public:
 
 private:
     Token _getNextToken(semantic_type &yylval,yyscan_t yyscanner);
-
-    int makeToken(const char * txt, int len, int tk){
-        std::string tt(txt,len);
-        text = std::move(tt);
-        return tk;
-    }    
+  
     std::istream &in;
     std::string text;
     yyscan_t scanner;
