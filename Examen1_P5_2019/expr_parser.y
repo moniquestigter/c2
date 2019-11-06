@@ -45,8 +45,8 @@
 input: expr_list 
 ;
 
-expr_list:	expr_list expr opt_semicolon {vars.push_back($2);}
-	| %empty {vars.clear();};
+expr_list:	expr_list expr opt_semicolon {values.push_back($2);}
+	| %empty {values.clear();};
 ;
 opt_semicolon:  ';'{}
              | %empty;

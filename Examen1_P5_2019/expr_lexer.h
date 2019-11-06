@@ -1,14 +1,10 @@
 #ifndef _EXPR_LEXER_H
 #define _EXPR_LEXER_H
 
-#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
 #include <fstream>
 #include <string>
-#include <iostream>
-#include <cstring>
-#include <fstream>
-#include <string>
-#include <vector>
 #include <unordered_map>
 #include "expr_tokens.h"
 #include "stack.hh"
@@ -34,17 +30,19 @@ public:
     ExprLexer(std::istringstream &in);
     ~ExprLexer();
 
-    int makeToken(const char * txt, int len, int tk){
-        std::string tt(txt,len);
-        text = std::move(tt);
-        return tk;
-    }
+    int getLineNo();
 
-    Token getNextToken() { return _getNextToken(scanner); }
+    Token getNextToken(semantic_type *yylval) { return _getNextToken(*yylval,scanner); }
     std::string getText() { return text; }
 
 private:
     Token _getNextToken(semantic_type &yylval,yyscan_t yyscanner);
+
+    int makeToken(const char * txt, int len, int tk){
+        std::string tt(txt,len);
+        text = std::move(tt);
+        return tk;
+    }    
     std::istream &in;
     std::string text;
     yyscan_t scanner;
