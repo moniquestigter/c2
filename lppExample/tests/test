@@ -1,0 +1,14 @@
+x<-2^3+(4-2)
+Escriba x
+Si x == 10 entonces
+    Escriba x+9
+    Escriba 20
+sino
+    Escriba 4
+fin si
+z<-11*3
+Escriba z
+/*Mientras z
+haga
+    Escriba z+1
+fin mientras*/

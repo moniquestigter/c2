@@ -1,0 +1,199 @@
+%option lang = "C++"
+%option reentrant
+
+%decls %{
+    //.h file
+    #include <string>
+    #include <cstddef> //for size_t
+    #include <cmath>
+    #include <unordered_map>
+    #include <vector>
+    using string_t = std::string;
+    
+%}
+
+%{
+    //source file .cpp
+    #include "expr_ast.h"
+    #include <iostream>
+    #include <stdio.h>
+    void yyerror(const char *msg);
+    std::unordered_map<std::string, int> idents;
+%}
+
+%enum type_code = 
+{
+    int_type,
+    float_type,
+    string_type
+}
+
+%node ASTNode %abstract %typedef
+
+%node expression ASTNode %abstract = 
+{
+    %nocreate type_code type = {int_type};
+}
+
+%node binary expression %abstract = 
+{
+    ASTNode *expr1;
+    ASTNode *expr2;
+}
+
+%node unary expression %abstract = 
+{
+    ASTNode *expr;
+}
+
+%node intnum expression = 
+{
+    int num;
+}
+
+%node floatnum expression = 
+{
+    float num;
+}
+
+%node id expression =
+{
+    string_t id_val;
+}
+
+%node plus binary
+%node minus binary
+%node multiply binary
+%node divide binary
+%node power binary
+%node equal binary
+%node notEqual binary
+%node lessThan binary
+%node greaterThan binary
+%node lessThanEqual binary
+%node greaterThanEqual binary
+%node negate unary
+
+%node statement ASTNode %abstract
+
+%node ifStmt statement = {
+    ASTNode * condicion;
+    ASTNode * verdadero;
+    ASTNode * falso;
+}
+
+%node assign statement = {
+    string_t id;
+    ASTNode * value; //astnode
+}
+
+%node whileStmt statement = {
+    ASTNode * condicion;
+    ASTNode * action;
+}
+
+%node blockStmt statement = {
+    ASTNode * first;
+    ASTNode * next;
+}
+
+%node print statement = {
+    ASTNode * expr;
+}
+
+
+%operation %virtual int eval(ASTNode *e) 
+/* %operation %virtual int exec(ASTNode *s) */
+
+eval(print){
+    std::cout << expr->eval() << std::endl;
+    return 1;
+}
+
+eval(ifStmt){
+    if(condicion->eval()){
+        verdadero->eval();
+    } else {
+        falso->eval();
+    }
+    return 1;
+}
+
+eval(whileStmt){
+    while(condicion->eval()){
+        action->eval();
+        condicion->eval();
+    }
+    return 1;
+}
+
+eval(assign){
+    idents[id] = value->eval();
+    return 1;
+}
+
+eval(blockStmt){
+    first->eval();
+    next->eval();
+    return 1;
+}
+
+eval(plus){
+    return expr1->eval() + expr2->eval();
+}
+
+eval(minus){
+    return expr1->eval() - expr2->eval();
+}
+
+eval(multiply){
+    return expr1->eval() * expr2->eval();
+}
+
+eval(divide){
+    return expr1->eval() / expr2->eval();
+}
+
+eval(power){
+    return std::pow(expr1->eval(),expr2->eval());
+}
+
+eval(negate){
+    return expr->eval()*-1;
+}
+
+eval(id){
+    return idents[id_val];
+}
+
+eval(intnum){
+    return num;
+}
+
+eval(floatnum){
+    return num;
+}
+
+eval(equal){
+    return expr1->eval() == expr2->eval();
+}
+
+eval(notEqual){
+    return expr1->eval() != expr2->eval();
+}
+
+eval(lessThan){
+    return expr1->eval() < expr2->eval();
+}
+
+eval(greaterThan){
+    return expr1->eval() > expr2->eval();
+}
+
+eval(lessThanEqual){
+    return expr1->eval() <= expr2->eval();
+}
+
+eval(greaterThanEqual){
+    return expr1->eval() >= expr2->eval();
+}
