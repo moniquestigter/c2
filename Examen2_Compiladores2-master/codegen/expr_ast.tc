@@ -1,0 +1,107 @@
+%option lang = "C++"
+
+%decls %{
+	#include <iostream>
+	#include <string>
+	#include <unordered_map>
+	using string_t = std::string;
+
+	void resetCodegen();
+	int getOffset();
+%}
+
+%{
+	#include <expr_ast.h>
+
+	int offset;
+
+	void resetCodegen(){
+		offset = 0;
+	}
+
+	int getOffset(){
+		offset += 4
+	}
+
+	string_t getPlace(ASTNode* e){
+		if(e->isA(NumExpr_kind))
+			return e->place;
+		return "["+e->place+"]";
+	}
+%}
+
+
+%node ASTNode %abstract %typedef = {
+	string_t code;
+	string_t place;
+}
+%node Expr ASTNode %abstract %typedef
+
+%node FuncNode %typedef = {
+	ASTNode *exp;
+}
+
+%node BinExpr Expr = {
+	Expr *e1;
+	Expr *e2;
+}
+
+%node AddExpr BinExpr
+%node SubExpr BinExpr
+%node MulExpr BinExpr
+%node DivExpr BinExpr
+%node ModExpr BinExpr
+%node AndExpr BinExpr
+%node OrExpr BinExpr
+%node GTExpr BinExpr
+%node GTEExpr BinExpr
+%node LTExpr BinExpr
+%node LTEExpr BinExpr
+%node EQExpr BinExpr
+%node NEQExpr BinExpr
+
+%node IdentExpr Expr = {
+	string_t id;
+}
+
+%node NumExpr Expr = {
+	int num;
+}
+
+%operation string_t genCode(ASTNode *this)
+
+genCode(ASTNode){
+	return "";
+}
+
+genCode(Expr){
+	return "";
+}
+
+genCode(NumExpr){
+	place = std::to_string(num);
+	return "";
+}
+
+genCode(IdentExpr){
+	place = id; 
+	return "";
+}
+
+genCode(AddExpr){
+	place = "ebp - "+std::to_string(getOffset());
+	e1->genCode();
+	e2->genCode();
+	code = "mov eax, " + getPlace(e1) +"\nadd";
+	code += "push ebp\nmov ebp, esp\nsub esp, "+std::to_string(offset)+"\n";
+	return code;
+}
+
+genCode(FuncNode){
+	exp->genCode();
+	code = "global. main\nglobal. printf\ncall main\nmain:\n";
+	code += "push ebp\nmov ebp, esp\nsub esp, "+std::to_string(offset)+"\n";
+	code += exp->code;
+	code += "add esp, "+std::to_string(offset)+"\n";
+	code += "leave\nret\n";
+}

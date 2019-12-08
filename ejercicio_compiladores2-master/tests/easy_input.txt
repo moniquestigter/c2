@@ -1,0 +1,21 @@
+x = 2;
+y = x*7;
+z = y - 3;
+x = z + 1;
+y = x / z;
+z = y;
+
+print x;
+print y;
+print z;
+
+print x+2;
+
+if(y > 0)
+{
+    print y;
+}
+else
+{
+    print x;
+}

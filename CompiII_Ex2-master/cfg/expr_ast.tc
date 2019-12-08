@@ -1,0 +1,312 @@
+%option lang = "C++"
+%option state_type = "ASTNodePool"
+
+%decls %{
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <utility>
+#include <unordered_map>
+#include "expr_cfg.h"
+
+using StdString = std::string;
+using CFGStmtPair = std::pair<CFGStmt *, CFGStmt *>;
+
+struct ASTContext {
+    public:
+        int tmp_count;
+        std::unordered_map<StdString, int> vars;
+};
+
+extern CFGNodePool cfg_pool;
+%}
+
+%{
+#include "expr_ast.h"
+#include "expr_cfg.h"
+
+CFGNodePool cfg_pool;
+int tmp_lbl = 0;
+
+%}
+
+%node ASTNode %abstract %typedef = {
+    %nocreate CFGOperand *place = {nullptr};
+}
+
+%node Expr ASTNode %abstract 
+
+%node BinaryExpr Expr %abstract = {
+    ASTNode *expr1;
+    ASTNode *expr2;
+}
+
+%node NumExpr Expr = {
+    int value;
+}
+
+%node IdentExpr Expr = {
+    StdString ident;
+}
+
+%node NotExpr Expr = {
+    ASTNode *expr;
+}
+
+%node AndExpr BinaryExpr
+%node OrExpr BinaryExpr
+%node GTExpr BinaryExpr
+%node GEExpr BinaryExpr
+%node LTExpr BinaryExpr
+%node LEExpr BinaryExpr
+%node EQExpr BinaryExpr
+%node NEQExpr BinaryExpr
+%node AddExpr BinaryExpr
+%node SubExpr BinaryExpr
+%node MulExpr BinaryExpr
+%node DivExpr BinaryExpr
+%node ModExpr BinaryExpr
+
+%node Stmt ASTNode %abstract
+
+%node AssignStmt Stmt = {
+    StdString lhs;
+    ASTNode *rhs;
+}
+
+%node PrintStmt Stmt = {
+    ASTNode *expr;
+}
+
+%node IfStmt Stmt = {
+    ASTNode *cond;
+    ASTNode *stmt_true;
+    ASTNode *stmt_false;
+}
+
+%node WhileStmt Stmt = {
+    ASTNode *cond;
+    ASTNode *loop_body;
+}
+
+%node SeqStmt Stmt = {
+    ASTNode *first;
+    ASTNode *next;
+}
+
+%operation %virtual StdString toString(ASTNode *this)
+%operation %virtual StdString getOper(BinaryExpr *this)
+//%operation %virtual CFGNode ShortCircuit(Expr *this, CFGNode * cond, CFGNode * tru, CFGNode *fals )
+%operation %virtual CFGStmtPair toCFG(ASTNode * this, ASTContext actx)
+
+getOper(AndExpr) { return "&&"; }
+getOper(OrExpr) { return "||"; }
+getOper(AddExpr) { return "+"; }
+getOper(SubExpr) { return "-"; }
+getOper(MulExpr) { return "*"; }
+getOper(DivExpr) { return "/"; }
+getOper(ModExpr) { return "%"; }
+getOper(GTExpr) { return ">"; }
+getOper(GEExpr) { return ">="; }
+getOper(LTExpr) { return "<"; }
+getOper(LEExpr) { return "<="; }
+getOper(EQExpr) { return "=="; }
+getOper(NEQExpr) { return "!="; }
+
+toString(BinaryExpr) {
+    std::string s1 = expr1->toString();
+    std::string s2 = expr2->toString();
+
+    return "(" + s1 + ")" + getOper() + "(" + s2 + ")";
+}
+
+toString(NotExpr) {
+    return "!(" + expr->toString() + ")";
+}
+
+toString(NumExpr) {
+    return std::to_string(value);
+}
+
+toString(IdentExpr) {
+    return ident;
+}
+
+toString(AssignStmt) {
+    return lhs + "=" + rhs->toString();
+}
+
+toString(PrintStmt) {
+    return "print " + expr->toString();
+}
+
+toString(IfStmt) {
+    return "if (" + cond->toString() + ") {\n"
+           + stmt_true->toString() + "\n} else {\n"
+           + stmt_false->toString() + "\n}";
+}
+
+toString(WhileStmt) {
+    return "while (" + cond->toString() + ") {\n"
+        + loop_body->toString() + "\n}";
+}
+
+toString(SeqStmt) {
+    return first->toString() + "\n" + next->toString();
+}
+
+/*ShortCircuit(Expr){
+    return nullptr;
+}
+
+ShortCircuit(OrExpr){
+    CFGNode * exp2 = ShortCircuit(cond,tru,fals);
+    CFGNode * exp1 = ShortCircuit(cond,fals,exp2);
+    return exp1;
+}
+
+ShortCircuit(AndExpr){
+    CFGNode * exp2 = ShortCircuit(cond,tru,fals);
+    CFGNode * exp1 = ShortCircuit(cond,exp2,fals);
+    return exp1;
+}
+*/
+toCFG(ASTNode){
+    CFGNopStmt * nop = cfg_pool.CFGNopStmtCreate();
+    CFGStmtPair pair;
+    pair.first = nop;
+    pair.second = nop;
+    return pair;
+}
+
+/*toCFG(NumExpr){
+
+}
+
+toCFG(IdentExpr){
+
+}
+
+toCFG(AddExpr){
+    StdString lbl = "t"+actx.tmp_count++;
+    CFGOperand * op1;
+    CFGOperand * op2;
+    CFGStmtPair pair;
+    if(expr1->isA(NumExpr_kind)){
+        op1 = cfg_pool.CFGNumOperandCreate(((NumExpr *)expr1)->value);
+    }else if(expr1->isA(IdentExpr_kind)){
+        op1 = cfg_pool.CFGLValueOperandCreate(((IdentExpr *)expr1)->ident);
+    }
+
+    if(expr2->isA(NumExpr_kind)){
+        op2 = cfg_pool.CFGNumOperandCreate(((NumExpr *)expr2)->value);
+    }else if(expr2->isA(IdentExpr_kind)){
+        op2 = cfg_pool.CFGLValueOperandCreate(((IdentExpr *)expr2)->ident);
+    }
+
+    CFGAddExpr * addexpr = cfg_pool.CFGAddExprCreate(op1, op2);
+    CFGLValueOperand * lval = cfg_pool.CFGLValueOperandCreate(lbl);
+    CFGAssignStmt * assign = cfg_pool.CFGAssignStmtCreate(lval,addexpr);
+    CFGNopStmt * nop = cfg_pool.CFGNopStmtCreate();
+    pair.first= assign;
+    pair.second = nop;
+    return pair;
+}
+
+toCFG(SubExpr){
+    StdString lbl = "t"+actx.tmp_count++;
+    CFGOperand * op1;
+    CFGOperand * op2;
+    CFGStmtPair pair;
+    if(expr1->isA(NumExpr_kind)){
+        op1 = cfg_pool.CFGNumOperandCreate(((NumExpr *)expr1)->value);
+    }else if(expr1->isA(IdentExpr_kind)){
+        op1 = cfg_pool.CFGLValueOperandCreate(((IdentExpr *)expr1)->ident);
+    }
+
+    if(expr2->isA(NumExpr_kind)){
+        op2 = cfg_pool.CFGNumOperandCreate(((NumExpr *)expr2)->value);
+    }else if(expr2->isA(IdentExpr_kind)){
+        op2 = cfg_pool.CFGLValueOperandCreate(((IdentExpr *)expr2)->ident);
+    }
+
+
+    CFGSubExpr * sube = cfg_pool.CFGSubExprCreate(op1, op2);
+    CFGLValueOperand * lval = cfg_pool.CFGLValueOperandCreate(lbl);
+    CFGAssignStmt * assign = cfg_pool.CFGAssignStmtCreate(lval,sube);
+    CFGNopStmt * nop = cfg_pool.CFGNopStmtCreate();
+    pair.first= assign;
+    pair.second = nop;
+    return pair;
+}
+
+toCFG(MulExpr){
+    StdString lbl = "t"+actx.tmp_count++;
+    CFGOperand * op1;
+    CFGOperand * op2;
+    CFGStmtPair pair;
+    if(expr1->isA(NumExpr_kind)){
+        op1 = cfg_pool.CFGNumOperandCreate(((NumExpr *)expr1)->value);
+    }else if(expr1->isA(IdentExpr_kind)){
+        op1 = cfg_pool.CFGLValueOperandCreate(((IdentExpr *)expr1)->ident);
+    }
+
+    if(expr2->isA(NumExpr_kind)){
+        op2 = cfg_pool.CFGNumOperandCreate(((NumExpr *)expr2)->value);
+    }else if(expr2->isA(IdentExpr_kind)){
+        op2 = cfg_pool.CFGLValueOperandCreate(((IdentExpr *)expr2)->ident);
+    }
+
+    CFGMulExpr * mule = cfg_pool.CFGMulExprCreate(op1, op2);
+    CFGLValueOperand * lval = cfg_pool.CFGLValueOperandCreate(lbl);
+    CFGAssignStmt * assign = cfg_pool.CFGAssignStmtCreate(lval,mule);
+    CFGNopStmt * nop = cfg_pool.CFGNopStmtCreate();
+    pair.first= assign;
+    pair.second = nop;
+    return pair;
+}
+
+toCFG(DivExpr){
+    StdString lbl = "t"+actx.tmp_count++;
+    CFGOperand * op1;
+    CFGOperand * op2;
+    CFGStmtPair pair;
+    if(expr1->isA(NumExpr_kind)){
+        op1 = cfg_pool.CFGNumOperandCreate(((NumExpr *)expr1)->value);
+    }else if(expr1->isA(IdentExpr_kind)){
+        op1 = cfg_pool.CFGLValueOperandCreate(((IdentExpr *)expr1)->ident);
+    }
+
+    if(expr2->isA(NumExpr_kind)){
+        op2 = cfg_pool.CFGNumOperandCreate(((NumExpr *)expr2)->value);
+    }else if(expr2->isA(IdentExpr_kind)){
+        op2 = cfg_pool.CFGLValueOperandCreate(((IdentExpr *)expr2)->ident);
+    }
+
+    CFGDivExpr * dive = cfg_pool.CFGDivExprCreate(op1, op2);
+    CFGLValueOperand * lval = cfg_pool.CFGLValueOperandCreate(lbl);
+    CFGAssignStmt * assign = cfg_pool.CFGAssignStmtCreate(lval,dive);
+    CFGNopStmt * nop = cfg_pool.CFGNopStmtCreate();
+    pair.first = assign;
+    pair.second = nop;
+    return pair;
+}
+
+toCFG(WhileStmt){
+    CFGStmtPair pb = toCFG(actx);
+    CFGNopStmt * nop = cfg_pool.CFGNopStmtCreate();
+    CFGNode * bc = ShorCircuit(cond->toCFG(actx), pb.first, nop);
+    pair.second->setNext(bc);
+    CFGStmtPair pa;
+    pa.first = bc;
+    pa.second = nop;
+    return pa;
+}
+
+toCFG(SeqStmt){
+
+}
+
+toCFG(IfStmt){
+
+}*/

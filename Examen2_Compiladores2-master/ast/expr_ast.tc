@@ -1,0 +1,172 @@
+%option lang = "C++"
+
+%decls %{
+	#include <iostream>
+	#include <string>
+	using string_t = std::string;
+
+%}
+
+%{
+	#include <expr_ast.h>
+%}
+
+
+%node ASTNode %abstract %typedef
+%node Stmt ASTNode %abstract %typedef
+%node Expr ASTNode %abstract %typedef
+
+%node AssignStmt Stmt = {
+	string_t id;
+	ASTNode *e;
+}
+
+%node PrintStmt Stmt = {
+	ASTNode *e;
+}
+
+%node IfStmt Stmt = {
+	ASTNode *cond;
+	ASTNode *body;
+	ASTNode *body2;
+}
+
+%node WhileStmt Stmt = {
+	ASTNode *e;
+	ASTNode *body;
+}
+
+%node SeqStmt Stmt = {
+	ASTNode *s1;
+	ASTNode *s2;
+}
+
+%node BinExpr Expr = {
+	Expr *e1;
+	Expr *e2;
+}
+
+%node AddExpr BinExpr
+%node SubExpr BinExpr
+%node MulExpr BinExpr
+%node DivExpr BinExpr
+%node ModExpr BinExpr
+%node AndExpr BinExpr
+%node OrExpr BinExpr
+%node GTExpr BinExpr
+%node GTEExpr BinExpr
+%node LTExpr BinExpr
+%node LTEExpr BinExpr
+%node EQExpr BinExpr
+%node NEQExpr BinExpr
+
+%node IdentExpr Expr = {
+	string_t id;
+}
+
+%node NumExpr Expr = {
+	int num;
+}
+
+%operation %virtual string_t toString(ASTNode *this)
+
+toString(BinExpr){
+	return "";
+}
+
+toString(AddExpr){
+	return "("+e1->toString()+")+("+e2->toString()+")";
+}
+
+toString(SubExpr){
+	return "("+e1->toString()+")-("+e2->toString()+")";
+}
+
+toString(MulExpr){
+	return "("+e1->toString()+")*("+e2->toString()+")";
+}
+
+toString(ModExpr){
+	return "("+e1->toString()+")%("+e2->toString()+")";
+}
+
+toString(DivExpr){
+	return "("+e1->toString()+")/("+e2->toString()+")";
+}
+
+toString(AndExpr){
+	return "("+e1->toString()+")&&("+e2->toString()+")";
+}
+
+toString(OrExpr){
+	return "("+e1->toString()+")||("+e2->toString()+")";
+}
+
+toString(GTExpr){
+	return "("+e1->toString()+")>("+e2->toString()+")";
+}
+
+toString(GTEExpr){
+	return "("+e1->toString()+")>=("+e2->toString()+")";
+}
+
+toString(LTExpr){
+	return "("+e1->toString()+")<("+e2->toString()+")";
+}
+
+toString(LTEExpr){
+	return "("+e1->toString()+")<=("+e2->toString()+")";
+}
+
+toString(EQExpr){
+	return "("+e1->toString()+")==("+e2->toString()+")";
+}
+
+toString(NEQExpr){
+	return "("+e1->toString()+")!=("+e2->toString()+")";
+}
+
+toString(NumExpr){
+	return std::to_string(num);
+}
+//while ((x)<(y)) {\nx=(x)+(1)\n} if ((x)>(y)) {\nx=(y)+(z)\n} else {\nx=(y)-(10)\n}"
+toString(IdentExpr){
+	return id;
+}
+
+toString(PrintStmt){
+	return "print " + e->toString();
+}
+
+toString(AssignStmt){
+	return id+"="+e->toString();
+}
+
+toString(WhileStmt){
+	return "while ("+e->toString()+") {\n" + body->toString() + "\n}";
+}
+
+toString(IfStmt){
+	string_t str;
+	str = "if ("+cond->toString()+") {\n" + body->toString() + "\n}";
+	if(cond!=nullptr){
+		str += " else {\n"+body2->toString()+"\n}";
+	}
+	return str;
+}
+
+toString(SeqStmt){
+	return s1->toString()+"\n"+s2->toString();
+}
+
+
+
+
+
+
+
+
+
+
+
+

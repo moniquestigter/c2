@@ -1,0 +1,500 @@
+%option lang = "C++"
+%option state_type = "ASTNodePool"
+
+%decls %{
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <utility>
+#include "expr_cfg.h"
+
+using StdString = std::string;
+using CFGStmtPair = std::pair<CFGStmt *, CFGStmt *>;
+
+extern CFGNodePool cfg_pool;
+
+struct ASTContext {
+    ASTContext(): tempIdx(0) {}
+
+    CFGOperand *newTemp() {
+        std::string name = "t" + std::to_string(tempIdx++);
+        return cfg_pool.CFGLValueOperandCreate(name);
+    }
+
+    unsigned tempIdx;
+};
+
+using ASTContextRef = ASTContext&;
+
+%}
+
+%{
+#include "expr_ast.h"
+#include "expr_cfg.h"
+
+CFGNodePool cfg_pool;
+%}
+
+%node ASTNode %abstract %typedef = {
+    %nocreate CFGOperand *place = {nullptr};
+}
+
+%node Expr ASTNode %abstract 
+
+%node BinaryExpr Expr %abstract = {
+    ASTNode *expr1;
+    ASTNode *expr2;
+}
+
+%node NumExpr Expr = {
+    int value;
+}
+
+%node IdentExpr Expr = {
+    StdString ident;
+}
+
+%node NotExpr Expr = {
+    ASTNode *expr;
+}
+
+%node AndExpr BinaryExpr
+%node OrExpr BinaryExpr
+%node GTExpr BinaryExpr
+%node GEExpr BinaryExpr
+%node LTExpr BinaryExpr
+%node LEExpr BinaryExpr
+%node EQExpr BinaryExpr
+%node NEQExpr BinaryExpr
+%node AddExpr BinaryExpr
+%node SubExpr BinaryExpr
+%node MulExpr BinaryExpr
+%node DivExpr BinaryExpr
+%node ModExpr BinaryExpr
+
+%node Stmt ASTNode %abstract
+
+%node AssignStmt Stmt = {
+    StdString lhs;
+    ASTNode *rhs;
+}
+
+%node PrintStmt Stmt = {
+    ASTNode *expr;
+}
+
+%node IfStmt Stmt = {
+    ASTNode *cond;
+    ASTNode *stmt_true;
+    ASTNode *stmt_false;
+}
+
+%node WhileStmt Stmt = {
+    ASTNode *cond;
+    ASTNode *loop_body;
+}
+
+%node SeqStmt Stmt = {
+    ASTNode *first;
+    ASTNode *next;
+}
+
+%operation %virtual StdString toString(ASTNode *this)
+%operation %virtual StdString getOper(BinaryExpr *this)
+
+%operation %virtual CFGStmtPair toCFG(ASTNode *this, ASTContextRef actx)
+%operation %virtual CFGStmt *shortCircuit(ASTNode *this, CFGStmt *tt, CFGStmt *ft, ASTContextRef actx)
+
+getOper(AndExpr) { return "&&"; }
+getOper(OrExpr) { return "||"; }
+getOper(AddExpr) { return "+"; }
+getOper(SubExpr) { return "-"; }
+getOper(MulExpr) { return "*"; }
+getOper(DivExpr) { return "/"; }
+getOper(ModExpr) { return "%"; }
+getOper(GTExpr) { return ">"; }
+getOper(GEExpr) { return ">="; }
+getOper(LTExpr) { return "<"; }
+getOper(LEExpr) { return "<="; }
+getOper(EQExpr) { return "=="; }
+getOper(NEQExpr) { return "!="; }
+
+toString(BinaryExpr) {
+    std::string s1 = expr1->toString();
+    std::string s2 = expr2->toString();
+
+    return "(" + s1 + ")" + getOper() + "(" + s2 + ")";
+}
+
+toString(NotExpr) {
+    return "!(" + expr->toString() + ")";
+}
+
+toString(NumExpr) {
+    return std::to_string(value);
+}
+
+toString(IdentExpr) {
+    return ident;
+}
+
+toString(AssignStmt) {
+    return lhs + "=" + rhs->toString();
+}
+
+toString(PrintStmt) {
+    return "print " + expr->toString();
+}
+
+toString(IfStmt) {
+    return "if (" + cond->toString() + ") {\n"
+           + stmt_true->toString() + "\n} else {\n"
+           + stmt_false->toString() + "\n}";
+}
+
+toString(WhileStmt) {
+    return "while (" + cond->toString() + ") {\n"
+        + loop_body->toString() + "\n}";
+}
+
+toString(SeqStmt) {
+    return first->toString() + "\n" + next->toString();
+}
+
+
+toCFG(AndExpr) {
+    place = actx.newTemp();
+
+    CFGOperand *one = cfg_pool.CFGNumOperandCreate(1);
+    CFGOperand *zero = cfg_pool.CFGNumOperandCreate(0);
+    CFGStmt* nop = cfg_pool.CFGNopStmtCreate();
+
+    CFGStmt *tru = cfg_pool.CFGAssignStmtCreate(place, cfg_pool.CFGUnaryExprCreate(one));
+    CFGStmt *fal = cfg_pool.CFGAssignStmtCreate(place, cfg_pool.CFGUnaryExprCreate(zero));
+
+    tru->setNext(nop);
+    fal->setNext(nop);
+
+    CFGStmt *stmt = shortCircuit(tru, fal, actx);
+
+    return CFGStmtPair(stmt, nop);
+}
+
+toCFG(OrExpr) {
+   place = actx.newTemp();
+
+    CFGOperand *one = cfg_pool.CFGNumOperandCreate(1);
+    CFGOperand *zero = cfg_pool.CFGNumOperandCreate(0);
+    CFGStmt* nop = cfg_pool.CFGNopStmtCreate();
+
+    CFGStmt *tru = cfg_pool.CFGAssignStmtCreate(place, cfg_pool.CFGUnaryExprCreate(one));
+    CFGStmt *fal = cfg_pool.CFGAssignStmtCreate(place, cfg_pool.CFGUnaryExprCreate(zero));
+
+    tru->setNext(nop);
+    fal->setNext(nop);
+
+    CFGStmt *stmt = shortCircuit(tru, fal, actx);
+
+    return CFGStmtPair(stmt, nop);
+}
+
+toCFG(GTExpr) {
+    CFGStmtPair op1 = expr1->toCFG(actx);
+    CFGStmtPair op2 = expr2->toCFG(actx);
+
+    place = actx.newTemp();
+
+    CFGExpr *expr = cfg_pool.CFGGTExprCreate(expr1->place, expr2->place);
+
+    CFGStmt *stmt = cfg_pool.CFGAssignStmtCreate(place, expr);
+
+    op1.second->setNext(op2.first);
+    op2.second->setNext(stmt);
+
+    return CFGStmtPair(op1.first, stmt);
+}
+
+toCFG(GEExpr) {
+    CFGStmtPair op1 = expr1->toCFG(actx);
+    CFGStmtPair op2 = expr2->toCFG(actx);
+
+    place = actx.newTemp();
+
+    CFGExpr *expr = cfg_pool.CFGGEExprCreate(expr1->place, expr2->place);
+
+    CFGStmt *stmt = cfg_pool.CFGAssignStmtCreate(place, expr);
+
+    op1.second->setNext(op2.first);
+    op2.second->setNext(stmt);
+
+    return CFGStmtPair(op1.first, stmt);
+}
+
+toCFG(ASTNode){
+    throw "no implementado";
+}
+
+toCFG(LTExpr) {
+    CFGStmtPair op1 = expr1->toCFG(actx);
+    CFGStmtPair op2 = expr2->toCFG(actx);
+
+    place = actx.newTemp();
+
+    CFGExpr *expr = cfg_pool.CFGLTExprCreate(expr1->place, expr2->place);
+
+    CFGStmt *stmt = cfg_pool.CFGAssignStmtCreate(place, expr);
+
+    op1.second->setNext(op2.first);
+    op2.second->setNext(stmt);
+
+    return CFGStmtPair(op1.first, stmt);
+}
+
+toCFG(LEExpr) {
+    CFGStmtPair op1 = expr1->toCFG(actx);
+    CFGStmtPair op2 = expr2->toCFG(actx);
+
+    place = actx.newTemp();
+
+    CFGExpr *expr = cfg_pool.CFGLEExprCreate(expr1->place, expr2->place);
+
+    CFGStmt *stmt = cfg_pool.CFGAssignStmtCreate(place, expr);
+
+    op1.second->setNext(op2.first);
+    op2.second->setNext(stmt);
+
+    return CFGStmtPair(op1.first, stmt);
+}
+
+toCFG(EQExpr) {
+    CFGStmtPair op1 = expr1->toCFG(actx);
+    CFGStmtPair op2 = expr2->toCFG(actx);
+
+    place = actx.newTemp();
+
+    CFGExpr *expr = cfg_pool.CFGEQExprCreate(expr1->place, expr2->place);
+
+    CFGStmt *stmt = cfg_pool.CFGAssignStmtCreate(place, expr);
+
+    op1.second->setNext(op2.first);
+    op2.second->setNext(stmt);
+
+    return CFGStmtPair(op1.first, stmt);
+}
+
+toCFG(NEQExpr) {
+    CFGStmtPair op1 = expr1->toCFG(actx);
+    CFGStmtPair op2 = expr2->toCFG(actx);
+
+    place = actx.newTemp();
+
+    CFGExpr *expr = cfg_pool.CFGNEExprCreate(expr1->place, expr2->place);
+
+    CFGStmt *stmt = cfg_pool.CFGAssignStmtCreate(place, expr);
+
+    op1.second->setNext(op2.first);
+    op2.second->setNext(stmt);
+
+    return CFGStmtPair(op1.first, stmt);
+}
+
+toCFG(AddExpr) {
+    CFGStmtPair op1 = expr1->toCFG(actx);
+    CFGStmtPair op2 = expr2->toCFG(actx);
+
+    place = actx.newTemp();
+
+    CFGExpr *expr = cfg_pool.CFGAddExprCreate(expr1->place, expr2->place);
+
+    CFGStmt *stmt = cfg_pool.CFGAssignStmtCreate(place, expr);
+
+    op1.second->setNext(op2.first);
+    op2.second->setNext(stmt);
+
+    return CFGStmtPair(op1.first, stmt);
+}
+
+toCFG(SubExpr) {
+    CFGStmtPair op1 = expr1->toCFG(actx);
+    CFGStmtPair op2 = expr2->toCFG(actx);
+
+    place = actx.newTemp();
+
+    CFGExpr *expr = cfg_pool.CFGSubExprCreate(expr1->place, expr2->place);
+
+    CFGStmt *stmt = cfg_pool.CFGAssignStmtCreate(place, expr);
+
+    op1.second->setNext(op2.first);
+    op2.second->setNext(stmt);
+
+    return CFGStmtPair(op1.first, stmt);
+}
+
+toCFG(MulExpr) {
+    CFGStmtPair op1 = expr1->toCFG(actx);
+    CFGStmtPair op2 = expr2->toCFG(actx);
+
+    place = actx.newTemp();
+
+    CFGExpr *expr = cfg_pool.CFGMulExprCreate(expr1->place, expr2->place);
+
+    CFGStmt *stmt = cfg_pool.CFGAssignStmtCreate(place, expr);
+
+    op1.second->setNext(op2.first);
+    op2.second->setNext(stmt);
+
+    return CFGStmtPair(op1.first, stmt);
+}
+
+toCFG(DivExpr) {
+    CFGStmtPair op1 = expr1->toCFG(actx);
+    CFGStmtPair op2 = expr2->toCFG(actx);
+
+    place = actx.newTemp();
+
+    CFGExpr *expr = cfg_pool.CFGDivExprCreate(expr1->place, expr2->place);
+
+    CFGStmt *stmt = cfg_pool.CFGAssignStmtCreate(place, expr);
+
+    op1.second->setNext(op2.first);
+    op2.second->setNext(stmt);
+
+    return CFGStmtPair(op1.first, stmt);
+}
+
+toCFG(ModExpr) {
+    CFGStmtPair op1 = expr1->toCFG(actx);
+    CFGStmtPair op2 = expr2->toCFG(actx);
+
+    place = actx.newTemp();
+
+    CFGExpr *expr = cfg_pool.CFGModExprCreate(expr1->place, expr2->place);
+
+    CFGStmt *stmt = cfg_pool.CFGAssignStmtCreate(place, expr);
+
+    op1.second->setNext(op2.first);
+    op2.second->setNext(stmt);
+
+    return CFGStmtPair(op1.first, stmt);
+}
+
+toCFG(NumExpr) {
+    place = cfg_pool.CFGNumOperandCreate(value);
+    CFGNopStmt *nop = cfg_pool.CFGNopStmtCreate();
+    return CFGStmtPair(nop, nop);
+}
+
+toCFG(IdentExpr) {
+    place = cfg_pool.CFGLValueOperandCreate(ident);
+    CFGNopStmt *nop = cfg_pool.CFGNopStmtCreate();
+    return CFGStmtPair(nop, nop);
+}
+
+toCFG(NotExpr) {
+    CFGStmtPair op = expr->toCFG(actx);
+
+    place = actx.newTemp();
+
+    CFGExpr *e = cfg_pool.CFGNegExprCreate(expr->place);
+
+    CFGStmt *stmt = cfg_pool.CFGAssignStmtCreate(place, e);
+
+    return CFGStmtPair(op.first, stmt);
+}
+
+toCFG(AssignStmt) {
+    CFGStmtPair op = rhs->toCFG(actx);
+
+    CFGOperand *_lhs = cfg_pool.CFGLValueOperandCreate(lhs);
+    CFGStmt *stmt = cfg_pool.CFGAssignStmtCreate(_lhs, rhs->place);
+    op.second->setNext(stmt);
+
+    return CFGStmtPair(op.first, stmt);
+}
+
+
+shortCircuit(ASTNode){
+    throw "error";
+}
+
+shortCircuit(Expr) {
+    CFGStmtPair Pair = toCFG(actx);
+
+    CFGOperand *zero = cfg_pool.CFGNumOperandCreate(0);
+
+    CFGExpr *cond = cfg_pool.CFGUnaryExprCreate(place);
+    CFGStmt *stmt = cfg_pool.CFGCBRStmtCreate(cond, tt, ft);
+
+    Pair.second->setNext(stmt);
+    tt->addPred(stmt);
+    ft->addPred(stmt);
+
+    return Pair.first;
+}
+
+shortCircuit(AndExpr) {
+    CFGStmt* stmt2 = ((Expr*)expr2)->shortCircuit(tt, ft, actx);
+    CFGStmt* stmt1 = ((Expr*)expr1)->shortCircuit(stmt2, ft, actx);
+
+    return stmt1;
+}
+
+shortCircuit(OrExpr) {
+    CFGStmt* stmt2 = ((Expr*)expr2)->shortCircuit(tt, ft, actx);
+    CFGStmt* stmt1 = ((Expr*)expr1)->shortCircuit(tt, stmt2, actx);
+
+    return stmt1;
+}
+
+shortCircuit(NotExpr) {
+    CFGStmt* stmt = ((Expr*)expr)->shortCircuit(ft, tt, actx);
+    return stmt;
+}
+
+toCFG(IfStmt) {
+	CFGStmtPair tru = stmt_true->toCFG(actx);
+	CFGStmtPair fal = stmt_false->toCFG(actx);
+    CFGStmt *nop = cfg_pool.CFGNopStmtCreate();
+
+    tru.second->setNext(nop);
+    fal.second->setNext(nop);
+
+    CFGStmt* _if =  ((Expr*)cond)->shortCircuit(tru.first, fal.first, actx);
+
+    return CFGStmtPair(_if, nop);
+}
+
+toCFG(WhileStmt) {
+	CFGStmtPair body = loop_body->toCFG(actx);
+    CFGStmt *nop = cfg_pool.CFGNopStmtCreate();
+
+
+    CFGStmt* _while =  ((Expr*)cond)->shortCircuit(body.first, nop, actx);
+    body.second->setNext(_while);
+
+    return CFGStmtPair(_while, nop);
+}
+
+toCFG(PrintStmt) {
+    CFGStmtPair expi = expr->toCFG(actx);
+
+    CFGStmt* paramore = cfg_pool.CFGParamStmtCreate(expr->place);
+    CFGStmt* caller = cfg_pool.CFGCallStmtCreate("print", 1);
+
+    CFGNopStmt *nop = cfg_pool.CFGNopStmtCreate();
+
+    expi.second->setNext(paramore);
+    
+    paramore->setNext(caller);
+
+    return CFGStmtPair(expi.first, caller);
+}
+
+toCFG(SeqStmt){
+    CFGStmtPair fir = ((Stmt*)first)->toCFG(actx);
+    CFGStmtPair net = ((Stmt*)next)->toCFG(actx);
+
+    fir.second->setNext(net.first);
+
+    return CFGStmtPair(fir.first,net.second);
+}
